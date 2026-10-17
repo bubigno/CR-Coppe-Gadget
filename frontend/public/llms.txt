@@ -1,0 +1,19 @@
+# CR Coppe & Gadget
+
+Azienda specializzata in coppe, trofei, targhe, medaglie e gadget aziendali personalizzati per aziende, club e società sportive.
+
+## Pagine
+
+- /: presentazione dell'azienda, categorie di prodotti, prodotti in evidenza e richiesta preventivo
+- /catalogo: catalogo completo dei prodotti con ricerca e filtri per categoria
+- /prodotti/[slug]: scheda prodotto con caratteristiche tecniche e richiesta di informazioni o preventivo
+- /chi-siamo: presentazione dell'attività e dei valori aziendali
+- /contatti: recapiti aziendali e modulo di contatto
+- /informazioni/privacy-policy: informativa sul trattamento dei dati personali
+- /informazioni/cookie-policy: utilizzo dei cookie
+- /informazioni/termini-uso: condizioni d'uso del sito
+- /mappa-sito: elenco di tutte le pagine, categorie e prodotti
+
+## Note
+
+Il catalogo è informativo: la vendita online non è ancora attiva. Per informazioni, personalizzazioni e preventivi è disponibile un modulo di richiesta dedicato.

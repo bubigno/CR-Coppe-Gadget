@@ -1,0 +1,20 @@
+# chiavi e segreti — MAI nel repository
+.env
+.env.*
+*.env
+frontend/.env
+backend/.env
+!.env.example
+!frontend/.env.example
+
+# build e dipendenze
+node_modules/
+frontend/build/
+__pycache__/
+*.pyc
+.venv/
+
+# file di lavoro
+uploads/
+*.log
+.DS_Store
