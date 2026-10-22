@@ -114,21 +114,44 @@ async def api_root():
 
 
 @api_router.get("/settings")
-async def public_settings():
+async def public_settings(request: Request):
     async with get_sessions()() as s:
         row = await get_settings_row(s)
-        return settings_serialize(row)
+        data = settings_serialize(row)
+        if request.cookies.get("cg_lang") == "en":
+            data["translations_en"] = row.translations_en or {}
+
+            async def persist(cache: dict, doc: dict):
+                await s.execute(update(Settings).where(Settings.id == doc["id"]).values(translations_en=cache))
+                await s.commit()
+
+            await apply_english("settings", [data], persist)
+            data.pop("translations_en", None)
+        return data
 
 
 @api_router.get("/categories")
-async def list_categories():
+async def list_categories(request: Request):
     async with get_sessions()() as s:
         rows = (await s.execute(select(Category).order_by(Category.sort_order, Category.name))).scalars().all()
-        return {"items": [category_serialize(c) for c in rows]}
+        items = [category_serialize(c) for c in rows]
+        if request.cookies.get("cg_lang") == "en":
+            for it, r in zip(items, rows):
+                it["translations_en"] = r.translations_en or {}
+
+            async def persist(cache: dict, doc: dict):
+                await s.execute(update(Category).where(Category.id == doc["id"]).values(translations_en=cache))
+                await s.commit()
+
+            await apply_english("category", items, persist)
+            for it in items:
+                it.pop("translations_en", None)
+        return {"items": items}
 
 
 @api_router.get("/products")
 async def list_products(
+    request: Request,
     category: str = "",
     search: str = "",
     featured: str = "",
@@ -160,11 +183,23 @@ async def list_products(
             .all()
         )
         cmap = await category_map(s)
-        return {"items": [product_serialize(p, cmap) for p in rows], "total": total}
+        items = [product_serialize(p, cmap) for p in rows]
+        if request.cookies.get("cg_lang") == "en":
+            for it, r in zip(items, rows):
+                it["translations_en"] = r.translations_en or {}
+
+            async def persist(cache: dict, doc: dict):
+                await s.execute(update(Product).where(Product.id == doc["id"]).values(translations_en=cache))
+                await s.commit()
+
+            await apply_english("product", items, persist)
+            for it in items:
+                it.pop("translations_en", None)
+        return {"items": items, "total": total}
 
 
 @api_router.get("/products/{slug}")
-async def get_product(slug: str):
+async def get_product(slug: str, request: Request):
     async with get_sessions()() as s:
         redirect = (await s.execute(select(Redirect).where(Redirect.from_slug == slug))).scalar_one_or_none()
         if redirect and redirect.to_slug:
@@ -189,19 +224,42 @@ async def get_product(slug: str):
             .unique()
             .all()
         )
-        return {
-            "product": product_serialize(p, cmap),
-            "related": [product_serialize(r, cmap) for r in related],
-        }
+        product_data = product_serialize(p, cmap)
+        related_data = [product_serialize(r, cmap) for r in related]
+        if request.cookies.get("cg_lang") == "en":
+
+            async def persist(cache: dict, doc: dict):
+                await s.execute(update(Product).where(Product.id == doc["id"]).values(translations_en=cache))
+                await s.commit()
+
+            product_data["translations_en"] = p.translations_en or {}
+            await apply_english("product", [product_data], persist, deep=True)
+            product_data.pop("translations_en", None)
+            for rd, r in zip(related_data, related):
+                rd["translations_en"] = r.translations_en or {}
+            await apply_english("product", related_data, persist)
+            for rd in related_data:
+                rd.pop("translations_en", None)
+        return {"product": product_data, "related": related_data}
 
 
 @api_router.get("/pages/{slug}")
-async def get_page(slug: str):
+async def get_page(slug: str, request: Request):
     async with get_sessions()() as s:
         pg = (await s.execute(select(Page).where(Page.slug == slug))).scalar_one_or_none()
         if not pg or not pg.published:
             raise HTTPException(status_code=404, detail="Pagina non trovata")
-        return page_serialize(pg)
+        data = page_serialize(pg)
+        if request.cookies.get("cg_lang") == "en":
+            data["translations_en"] = pg.translations_en or {}
+
+            async def persist(cache: dict, doc: dict):
+                await s.execute(update(Page).where(Page.id == doc["id"]).values(translations_en=cache))
+                await s.commit()
+
+            await apply_english("page", [data], persist, deep=True)
+            data.pop("translations_en", None)
+        return data
 
 
 @api_router.post("/quote-requests", status_code=201)
@@ -433,6 +491,7 @@ async def admin_update_product(pid: str, data: ProductData, _: dict = Depends(re
             values["category_slug"] = None  # FK: stringa vuota → NULL
         for k, v in values.items():
             setattr(p, k, v)
+        p.translations_en = {}  # invalida la cache EN: verrà ritradotta
         p.slug = slug
         p.seo_title = data.seo.seo_title
         p.seo_description = data.seo.meta_description
@@ -508,6 +567,7 @@ async def admin_update_category(cid: str, data: CategoryData, _: dict = Depends(
             values["parent_slug"] = None  # FK: stringa vuota → NULL
         for k, v in values.items():
             setattr(c, k, v)
+        c.translations_en = {}  # invalida la cache EN
         c.slug = slug
         c.sort_order = data.order
         c.seo_title = data.seo.seo_title
@@ -598,6 +658,7 @@ async def admin_update_page(slug: str, data: PageData, _: dict = Depends(require
         pg.title = data.title
         pg.hero_image = data.hero_image
         pg.published = True
+        pg.translations_en = {}  # invalida la cache EN
         pg.seo_title = data.seo.seo_title
         pg.seo_description = data.seo.meta_description
         pg.seo_noindex = data.seo.noindex
@@ -623,6 +684,7 @@ async def admin_update_settings(data: SettingsData, _: dict = Depends(require_ad
                 "seo_noindex": data.seo.noindex,
                 "seo_og_image": data.seo.og_image,
                 "updated_at": utcnow(),
+                "translations_en": {},  # invalida la cache EN
             }
         )
         await s.execute(
@@ -737,6 +799,7 @@ app.add_middleware(
 # Via middleware e non lifespan: il runtime Python di Vercel non garantisce gli
 # eventi di startup; il primo middleware eseguito per istanza fa da trigger.
 from .seed import bootstrap_if_needed  # noqa: E402
+from .translations import apply_english  # noqa: E402
 
 _bootstrapped = False
 

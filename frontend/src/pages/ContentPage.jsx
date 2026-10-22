@@ -12,7 +12,7 @@ export default function ContentPage() {
   const [page, setPage] = useState(null);
   const [missing, setMissing] = useState(false);
   const { openQuote } = useQuote();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   useEffect(() => {
     setPage(null);
@@ -21,7 +21,7 @@ export default function ContentPage() {
       .get(`/pages/${slug}`)
       .then((r) => setPage(r.data))
       .catch(() => setMissing(true));
-  }, [slug]);
+  }, [slug, lang]);
 
   const seo = page?.seo || {};
 

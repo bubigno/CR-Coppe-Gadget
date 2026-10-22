@@ -107,6 +107,52 @@ function PagesTab() {
   );
 }
 
+function HomeTab({ settings, reloadSettings }) {
+  const [form, setForm] = useState(settings);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => setForm(settings), [settings]);
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.put("/admin/settings", form);
+      toast.success("Home aggiornata: i testi in inglese verranno ritradotti automaticamente");
+      reloadSettings();
+    } catch (e) {
+      toast.error(formatApiErrorDetail(e.response?.data?.detail));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl" data-testid="admin-home">
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="field-label" htmlFor="home-hero-title">Titolo hero (una riga per linea)</label>
+          <textarea id="home-hero-title" className="field resize-y" rows={2} value={form.hero_title || ""} onChange={(e) => set("hero_title", e.target.value)} data-testid="admin-home-hero-title" />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="home-hero-sub">Sottotitolo hero</label>
+          <textarea id="home-hero-sub" className="field resize-y" rows={2} value={form.hero_subtitle || ""} onChange={(e) => set("hero_subtitle", e.target.value)} data-testid="admin-home-hero-subtitle" />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="home-about">Testo breve presentazione (homepage)</label>
+          <textarea id="home-about" className="field resize-y" rows={3} value={form.about_short || ""} onChange={(e) => set("about_short", e.target.value)} data-testid="admin-home-about-short" />
+        </div>
+      </div>
+      <p className="mt-4 text-xs text-slate-500">La versione inglese di questi testi viene generata automaticamente.</p>
+      <button onClick={save} disabled={saving} className="btn-gold mt-4 !px-6 !py-2.5 !text-xs disabled:opacity-60" data-testid="admin-home-save">
+        {saving ? <Loader2 size={14} className="animate-spin" /> : null}
+        {saving ? "Salvataggio…" : "Salva home"}
+      </button>
+    </div>
+  );
+}
+
 function SeoTab({ settings, reloadSettings }) {
   const [siteUrl, setSiteUrl] = useState(settings.site_url || "");
   const [redirects, setRedirects] = useState([]);
@@ -263,14 +309,6 @@ function SettingsTab({ settings, reloadSettings }) {
           </div>
         ))}
         <div>
-          <label className="field-label" htmlFor="set-hero-title">Titolo hero (una riga per linea)</label>
-          <textarea id="set-hero-title" className="field resize-y" rows={2} value={form.hero_title || ""} onChange={(e) => set("hero_title", e.target.value)} data-testid="admin-settings-hero-title" />
-        </div>
-        <div>
-          <label className="field-label" htmlFor="set-hero-sub">Sottotitolo hero</label>
-          <textarea id="set-hero-sub" className="field resize-y" rows={2} value={form.hero_subtitle || ""} onChange={(e) => set("hero_subtitle", e.target.value)} data-testid="admin-settings-hero-subtitle" />
-        </div>
-        <div>
           <label className="field-label" htmlFor="set-hours">Giorni e orari di apertura (una riga per voce)</label>
           <textarea
             id="set-hours"
@@ -284,10 +322,6 @@ function SettingsTab({ settings, reloadSettings }) {
           <p className="mt-1.5 text-xs text-slate-500">
             Ogni riga appare nella pagina Contatti. Usa [parentesi quadre] finché i dati non sono confermati.
           </p>
-        </div>
-        <div>
-          <label className="field-label" htmlFor="set-about">Testo breve presentazione (homepage)</label>
-          <textarea id="set-about" className="field resize-y" rows={3} value={form.about_short || ""} onChange={(e) => set("about_short", e.target.value)} data-testid="admin-settings-about-short" />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
@@ -463,6 +497,7 @@ export default function AdminContent() {
 
       <div className="mb-6 flex gap-2 overflow-x-auto" data-testid="admin-content-tabs">
         {[
+          ["home", "Home"],
           ["pages", "Pagine"],
           ["seo", "SEO"],
           ["settings", "Impostazioni generali"],
@@ -482,6 +517,7 @@ export default function AdminContent() {
       </div>
 
       {!settings && <p className="text-sm text-slate-600">Caricamento…</p>}
+      {settings && tab === "home" && <HomeTab settings={settings} reloadSettings={reloadSettings} />}
       {settings && tab === "pages" && <PagesTab />}
       {settings && tab === "seo" && <SeoTab settings={settings} reloadSettings={reloadSettings} />}
       {settings && tab === "settings" && <SettingsTab settings={settings} reloadSettings={reloadSettings} />}

@@ -52,7 +52,7 @@ function FooterLanguage() {
 export default function Footer() {
   const [settings, setSettings] = useState(null);
   const [categories, setCategories] = useState([]);
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const location = useLocation();
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function Footer() {
       .get("/categories")
       .then((r) => setCategories((r.data.items || []).filter((c) => !c.parent_slug).slice(0, 4)))
       .catch(() => {});
-  }, []);
+  }, [lang]);
 
   const contactValue = (v) =>
     isPlaceholder(v) ? (

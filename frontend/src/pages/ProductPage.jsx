@@ -12,7 +12,7 @@ export default function ProductPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { openQuote } = useQuote();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [state, setState] = useState({ loading: true, notFound: false, product: null, related: [] });
   const [mainImage, setMainImage] = useState("");
 
@@ -29,7 +29,7 @@ export default function ProductPage() {
         }
       })
       .catch(() => setState((s) => ({ ...s, loading: false, notFound: true })));
-  }, [slug, navigate]);
+  }, [slug, navigate, lang]);
 
   if (state.loading) {
     return (

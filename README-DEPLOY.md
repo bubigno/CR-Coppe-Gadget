@@ -28,6 +28,7 @@ vercel.json             → build frontend + rewrite /api → funzione + fallbac
 - Il progetto Vercel già collegato al repo genera automaticamente una **preview URL** per il branch `nuovo-sito`, senza toccare la produzione del vecchio sito.
 - Environment Variables (Sensitive): `SUPABASE_DB_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET` (nuovo, 64 caratteri), `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `REACT_APP_BACKEND_URL=""` (o non impostata: il frontend usa percorsi relativi).
 - Auto-configurazione: al primo avvio il backend crea da solo admin, impostazioni e pagine essenziali (nessuno script da eseguire). Catalogo vuoto: inserisci categorie/prodotti dal pannello admin. Per un catalogo demo: `python -m backend.seed` con le env locali.
+- Traduzioni automatiche IT→EN dei contenuti (prodotti, categorie, pagine, home): richiedono la variabile `EMERGENT_LLM_KEY` nelle env di Vercel; senza chiave il sito resta in italiano senza errori.
 
 ### 4. Test completo sulla preview
 Login admin (username/password), cambio credenziali, CRUD prodotti/categorie/pagine, upload immagini (fino a 4 MB diretto; oltre, `POST /api/admin/uploads/signed`), catalogo/ricerca/filtri, scheda prodotto con galleria e correlati, invio preventivo + contatto (honeypot, rate limit), gestione richieste con stati, dashboard statistiche (solo dati reali), redirect 301, sitemap.xml (dopo aver impostato `site_url` nelle Impostazioni), responsive mobile.

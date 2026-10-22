@@ -32,6 +32,7 @@ Obiettivo: caricare il codice del NUOVO sito in un branch separato del tuo repos
 | `ADMIN_PASSWORD` | (valore fornito in chat) | Cambiabile poi dal pannello admin |
 | `REACT_APP_BACKEND_URL` | (vuota) | L'API è same-origin. Se Vercel rifiuta il valore vuoto, non impostare la variabile |
 | `CORS_ORIGINS` | (facoltativa) | Non necessaria in preview (stesso dominio) |
+| `EMERGENT_LLM_KEY` | (chiave LLM fornita in chat) | Necessaria per le traduzioni automatiche in inglese; senza chiave i contenuti restano in italiano |
 
 ## Schema del database (una sola volta)
 

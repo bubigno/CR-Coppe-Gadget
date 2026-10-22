@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -69,6 +69,7 @@ class Category(Base):
     image: Mapped[Optional[str]] = mapped_column(Text, default="")
     parent_slug: Mapped[Optional[str]] = mapped_column(String(80), ForeignKey("categories.slug"))
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    translations_en: Mapped[dict] = mapped_column(JSON, default=dict)  # cache traduzioni EN
     seo_title: Mapped[Optional[str]] = mapped_column(String(70), default="")
     seo_description: Mapped[Optional[str]] = mapped_column(String(180), default="")
     seo_noindex: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
@@ -99,6 +100,7 @@ class Product(Base):
     featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     views: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    translations_en: Mapped[dict] = mapped_column(JSON, default=dict)  # cache traduzioni EN
     seo_title: Mapped[Optional[str]] = mapped_column(String(70), default="")
     seo_description: Mapped[Optional[str]] = mapped_column(String(180), default="")
     seo_noindex: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
@@ -137,6 +139,7 @@ class Page(Base):
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     hero_image: Mapped[Optional[str]] = mapped_column(Text, default="")
     published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    translations_en: Mapped[dict] = mapped_column(JSON, default=dict)  # cache traduzioni EN
     seo_title: Mapped[Optional[str]] = mapped_column(String(70), default="")
     seo_description: Mapped[Optional[str]] = mapped_column(String(180), default="")
     seo_noindex: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
@@ -196,6 +199,7 @@ class Settings(Base):
     linkedin: Mapped[Optional[str]] = mapped_column(Text, default="")
     site_url: Mapped[Optional[str]] = mapped_column(Text, default="")
     google_analytics_id: Mapped[Optional[str]] = mapped_column(String(60), default="")
+    translations_en: Mapped[dict] = mapped_column(JSON, default=dict)  # cache traduzioni EN
     seo_title: Mapped[Optional[str]] = mapped_column(String(70), default="")
     seo_description: Mapped[Optional[str]] = mapped_column(String(180), default="")
     seo_noindex: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)

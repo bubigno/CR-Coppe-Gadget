@@ -23,11 +23,11 @@ export default function ContactPage() {
   const [form, setForm] = useState(EMPTY);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   useEffect(() => {
     api.get("/settings").then((r) => setSettings(r.data)).catch(() => {});
-  }, []);
+  }, [lang]);
 
   const set = (k) => (e) =>
     setForm((f) => ({

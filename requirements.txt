@@ -8,3 +8,5 @@ pydantic[email]==2.10.4
 PyJWT==2.10.1
 bcrypt==4.2.1
 python-dotenv==1.0.1
+--extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+emergentintegrations==0.2.2

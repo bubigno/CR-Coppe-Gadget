@@ -286,6 +286,7 @@ function FinalCta() {
 }
 
 export default function HomePage() {
+  const { lang } = useLang();
   const [settings, setSettings] = useState({});
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
@@ -297,7 +298,7 @@ export default function HomePage() {
       .get("/products", { params: { featured: "true", limit: 8 } })
       .then((r) => setFeatured(r.data.items || []))
       .catch(() => {});
-  }, []);
+  }, [lang]);
 
   return (
     <>
