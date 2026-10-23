@@ -2,3 +2,16 @@
 name = "cr-coppe-gadget-backend"
 version = "1.0.0"
 requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi==0.161.1",
+    "SQLAlchemy[asyncio]==2.1.6",
+    "asyncpg==0.32.0",
+    "supabase==2.11.0",
+    "python-multipart==0.0.20",
+    "pydantic[email]==2.14.1",
+    "PyJWT==2.10.1",
+    "bcrypt==5.0.0",
+    "python-dotenv==1.0.1",
+    "httpx==0.28.1",
+]
+
