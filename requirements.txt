@@ -1,11 +1,11 @@
-# Dipendenze backend (runtime Vercel Python)
-fastapi==0.115.6
-SQLAlchemy==2.0.36
-asyncpg==0.30.0
+# Dipendenze backend (runtime Vercel — compatibili Python 3.12 / 3.13 / 3.14, solo wheel precompilate)
+fastapi==0.161.1
+SQLAlchemy[asyncio]==2.1.6
+asyncpg==0.32.0
 supabase==2.11.0
 python-multipart==0.0.20
-pydantic[email]==2.10.4
+pydantic[email]==2.14.1
 PyJWT==2.10.1
-bcrypt==4.2.1
+bcrypt==5.0.0
 python-dotenv==1.0.1
 httpx==0.28.1

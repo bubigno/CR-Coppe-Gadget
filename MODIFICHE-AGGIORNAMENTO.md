@@ -43,3 +43,46 @@ Vercel rilancerà il deployment del branch automaticamente dopo il push.
 ## Non verificabili da questo ambiente
 - Il deployment reale su Vercel (avviene dopo il push, nella dashboard Vercel)
 - Cold start serverless con le chiavi di produzione definitive
+
+
+---
+
+# AGGIORNAMENTO 2 — pydantic-core / Python 3.14 (build Vercel)
+
+## Problema risolto
+Vercel selezionava Python 3.14 (ignorando `.python-version`) e `pydantic-core==2.27.2` (di pydantic 2.10.4) non ha wheel per 3.14: pip tentava la compilazione sorgente e PyO3 0.22.6 rifiutava ("exceeds the maximum supported version 3.13").
+
+## Soluzione (doppio strato, nessuna soppressione PYO3)
+1. **Selezione versione**: aggiunto `pyproject.toml` con `requires-python = ">=3.12,<3.13"` (metodo raccomandato dalla documentazione Vercel per fissare la versione; `.python-version` resta come fallback di compatibilità).
+2. **Compatibilità universale**: dipendenze aggiornate a versioni con wheel precompilate per 3.12, 3.13 E 3.14, così la build riesce qualunque runtime venga selezionato:
+   - `fastapi==0.161.1` (compatibile pydantic 2.14)
+   - `pydantic[email]==2.14.1` (pydantic-core 2.50.1, wheel cp312–cp314)
+   - `SQLAlchemy[asyncio]==2.1.6` (supporto Python 3.14 + extra asyncio: su installazioni fresche greenlet va dichiarato esplicitamente)
+   - `asyncpg==0.32.0` (wheel cp314)
+   - `bcrypt==5.0.0` (wheel abi3 per 3.14) — `backend/auth.py` ora tronca le password a 72 byte prima di hash/verifica (bcrypt 5 rifiuta password più lunghe; comportamento identico a bcrypt 4 per gli hash esistenti)
+
+## File creati/modificati in questo aggiornamento (branch `nuovo-sito`)
+1. `pyproject.toml` — NUOVO (requires-python 3.12)
+2. `.python-version` — verificato/aggiunto (contenuto `3.12`)
+3. `requirements.txt` — pin aggiornati (vedi sopra)
+4. `backend/auth.py` — troncamento password a 72 byte (compatibile bcrypt 5)
+5. `MODIFICHE-AGGIORNAMENTO.md` — QUESTO file (aggiornato)
+
+## Comandi Git per pubblicare
+```bash
+git checkout nuovo-sito
+# sostituisci/aggiungi i file elencati sopra, poi:
+git add pyproject.toml .python-version requirements.txt backend/auth.py MODIFICHE-AGGIORNAMENTO.md
+git commit -m "Build Vercel: dipendenze con wheel per 3.12/3.14 + requires-python 3.12"
+git push origin nuovo-sito
+```
+
+## Verifiche eseguite
+- Risoluzione uv per 3.12 e per 3.14: exit 0, nessuna dipendenza-URL, nessun litellm
+- Installazione reale in venv Python 3.14.9 dai pin finali: SUCCESSO con sole wheel precompilate (nessuna compilazione sorgente)
+- Import completo del backend e avvio uvicorn su Python 3.12 E 3.14: OK
+- Flusso end-to-end su entrambi i runtime: impostazioni IT/EN (traduzione via httpx), login admin (bcrypt 5), preventivo 201, catalogo, pagine
+- Frontend invariato (build già verificata)
+
+## Non verificabili da questo ambiente
+- Il deploy effettivo su Vercel (dopo il push) e il cold start serverless con chiavi di produzione
