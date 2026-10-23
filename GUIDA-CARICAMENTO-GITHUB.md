@@ -5,7 +5,7 @@ Obiettivo: caricare il codice del NUOVO sito in un branch separato del tuo repos
 ## METODO CONSIGLIATO — GitHub Desktop (15 minuti)
 
 1. Scarica GitHub Desktop da https://desktop.github.com, installalo e accedi con il tuo account GitHub.
-2. Menu `File` → `Clone repository` → scegli `bubigno/caretti_fratelli_sito` → `Clone`.
+2. Menu `File` → `Clone repository` → scegli `bubigno/CR-Coppe-Gadget` → `Clone`.
 3. Menu `Branch` → `New branch…` → nome: `nuovo-sito` → base: `main` → `Create branch`.
 4. Menu `Repository` → `Show in Explorer` (Windows) / `Open in Finder` (Mac): si apre la cartella del repository.
 5. Nella cartella elimina TUTTI i file e le cartelle visibili (è solo la copia locale: `main` su GitHub resta intatto). ATTENZIONE: non eliminare la cartella nascosta `.git` — per vederla in Windows attiva `Visualizza` → `Mostra` → `Elementi nascosti`.
@@ -32,7 +32,7 @@ Obiettivo: caricare il codice del NUOVO sito in un branch separato del tuo repos
 | `ADMIN_PASSWORD` | (valore fornito in chat) | Cambiabile poi dal pannello admin |
 | `REACT_APP_BACKEND_URL` | (vuota) | L'API è same-origin. Se Vercel rifiuta il valore vuoto, non impostare la variabile |
 | `CORS_ORIGINS` | (facoltativa) | Non necessaria in preview (stesso dominio) |
-| `EMERGENT_LLM_KEY` | (chiave LLM fornita in chat) | Necessaria per le traduzioni automatiche in inglese; senza chiave i contenuti restano in italiano |
+| `EMERGENT_LLM_KEY` | (chiave LLM fornita in chat) | Necessaria per le traduzioni automatiche in inglese; senza chiave i contenuti restano in italiano. In alternativa puoi usare `OPENAI_API_KEY` (API OpenAI standard) |
 
 ## Schema del database (una sola volta)
 

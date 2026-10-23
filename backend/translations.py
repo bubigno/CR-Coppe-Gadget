@@ -2,7 +2,8 @@ import json
 import logging
 import os
 import re
-import uuid
+
+import httpx
 
 logger = logging.getLogger("crcoppe-translations")
 
@@ -17,7 +18,28 @@ DEEP_EXTRA = {
     "product": ["full_description", "materials", "dimensions", "colors", "variants", "customization_info"],
 }
 
-_MODEL = ("openai", "gpt-5.4-mini")
+_SYSTEM_PROMPT = (
+    "Sei un traduttore professionale italiano→inglese per il sito aziendale di CR Coppe & Gadget "
+    "(coppe, trofei, targhe, medaglie e gadget personalizzati). Usa un inglese commerciale scorrevole. "
+    "Non tradurre URL, email, numeri di telefono, unità di misura, nomi propri. "
+    "Lascia invariati i testi tra parentesi quadre [segnaposto]. "
+    "Restituisci SOLO JSON valido con la STESSA struttura e le stesse chiavi dell'input, valori tradotti."
+)
+
+
+def _llm_config():
+    """(base_url, model, api_key) in base alla chiave disponibile nell'ambiente.
+    - OPENAI_API_KEY  → API pubblica OpenAI (indipendenza totale da Emergent)
+    - EMERGENT_LLM_KEY → endpoint pubblico OpenAI-compatibile https://integrations.emergentagent.com/llm
+    Entrambi raggiungibili da qualsiasi hosting (incluso Vercel)."""
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key:
+        return "https://api.openai.com/v1", os.environ.get("LLM_MODEL", "gpt-4o-mini"), openai_key
+    emergent_key = os.environ.get("EMERGENT_LLM_KEY")
+    if emergent_key:
+        base = os.environ.get("EMERGENT_LLM_BASE_URL", "https://integrations.emergentagent.com/llm").rstrip("/")
+        return base, os.environ.get("LLM_MODEL", "gpt-5.4-mini"), emergent_key
+    return None
 
 
 def _extract(kind: str, doc: dict, deep: bool) -> dict:
@@ -69,32 +91,38 @@ def _apply(doc: dict, cache: dict) -> None:
 
 
 async def _llm_translate(payload: dict) -> dict | None:
-    """Una chiamata LLM per lotto: traduce il JSON IT→EN restituendo la stessa struttura."""
-    key = os.environ.get("EMERGENT_LLM_KEY")
-    if not key or not payload:
+    """Una chiamata LLM per lotto: traduce il JSON IT→EN restituendo la stessa struttura.
+    Implementazione indipendente da SDK proprietari: HTTP diretto (httpx) su endpoint
+    OpenAI-compatibile pubblico."""
+    cfg = _llm_config()
+    if not cfg or not payload:
+        return None
+    base_url, model, api_key = cfg
+    try:
+        async with httpx.AsyncClient(timeout=45) as client:
+            res = await client.post(
+                f"{base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": model,
+                    "temperature": 0.2,
+                    "messages": [
+                        {"role": "system", "content": _SYSTEM_PROMPT},
+                        {"role": "user", "content": "Traduci in inglese:\n\n" + json.dumps(payload, ensure_ascii=False)},
+                    ],
+                },
+            )
+            res.raise_for_status()
+            text = ((res.json().get("choices") or [{}])[0].get("message") or {}).get("content") or ""
+    except Exception:
+        logger.exception("Chiamata LLM non riuscita: fallback sull'italiano")
         return None
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-
-        chat = LlmChat(
-            api_key=key,
-            session_id=f"traduzioni-{uuid.uuid4()}",
-            system_message=(
-                "Sei un traduttore professionale italiano→inglese per il sito aziendale di CR Coppe & Gadget "
-                "(coppe, trofei, targhe, medaglie e gadget personalizzati). Usa un inglese commerciale scorrevole. "
-                "Non tradurre URL, email, numeri di telefono, unità di misura, nomi propri. "
-                "Lascia invariati i testi tra parentesi quadre [segnaposto]. "
-                "Restituisci SOLO JSON valido con la STESSA struttura e le stesse chiavi dell'input, valori tradotti."
-            ),
-        ).with_model(*_MODEL)
-        msg = UserMessage(text="Traduci in inglese:\n\n" + json.dumps(payload, ensure_ascii=False))
-        res = await chat.send_message(msg)
-        text = (res or "").strip()
-        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text)
+        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", (text or "").strip())
         out = json.loads(text)
         return out if isinstance(out, dict) else None
     except Exception:
-        logger.exception("Traduzione automatica non riuscita: fallback sull'italiano")
+        logger.exception("Risposta LLM non è JSON valido: fallback sull'italiano")
         return None
 
 
