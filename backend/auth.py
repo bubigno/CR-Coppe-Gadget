@@ -23,13 +23,12 @@ def get_jwt_secret() -> str:
 
 
 def hash_password(password: str) -> str:
-    # troncamento a 72 byte: bcrypt 5 rifiuta password più lunghe (bcrypt 4 le troncava)
-    return bcrypt.hashpw(password.encode("utf-8")[:72], bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
     try:
-        return bcrypt.checkpw(plain.encode("utf-8")[:72], hashed.encode("utf-8"))
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
     except (ValueError, TypeError):
         return False
 

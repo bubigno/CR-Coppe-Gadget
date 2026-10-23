@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS categories (
   image text DEFAULT '',
   parent_slug text REFERENCES categories(slug),
   sort_order int NOT NULL DEFAULT 0,
-  translations_en jsonb NOT NULL DEFAULT '{}',
   seo_title text DEFAULT '',
   seo_description text DEFAULT '',
   seo_noindex boolean DEFAULT false,
@@ -51,7 +50,6 @@ CREATE TABLE IF NOT EXISTS products (
   featured boolean NOT NULL DEFAULT false,
   is_demo boolean NOT NULL DEFAULT false,
   views int NOT NULL DEFAULT 0,
-  translations_en jsonb NOT NULL DEFAULT '{}',
   seo_title text DEFAULT '',
   seo_description text DEFAULT '',
   seo_noindex boolean DEFAULT false,
@@ -85,7 +83,6 @@ CREATE TABLE IF NOT EXISTS pages (
   title text NOT NULL,
   hero_image text DEFAULT '',
   published boolean NOT NULL DEFAULT true,
-  translations_en jsonb NOT NULL DEFAULT '{}',
   seo_title text DEFAULT '',
   seo_description text DEFAULT '',
   seo_noindex boolean DEFAULT false,
@@ -141,7 +138,6 @@ CREATE TABLE IF NOT EXISTS settings (
   linkedin text DEFAULT '',
   site_url text DEFAULT '',
   google_analytics_id text DEFAULT '',
-  translations_en jsonb NOT NULL DEFAULT '{}',
   seo_title text DEFAULT '',
   seo_description text DEFAULT '',
   seo_noindex boolean DEFAULT false,
@@ -194,9 +190,3 @@ ALTER TABLE login_attempts ENABLE ROW LEVEL SECURITY;
 -- Bucket pubblico per le immagini (lettura pubblica, scrittura solo via service role / URL firmati)
 INSERT INTO storage.buckets (id, name, public) VALUES ('uploads', 'uploads', true)
 ON CONFLICT (id) DO NOTHING;
-
--- Cache traduzioni inglesi (contenuti CMS) — aggiunta idempotente
-ALTER TABLE products ADD COLUMN IF NOT EXISTS translations_en jsonb NOT NULL DEFAULT '{}';
-ALTER TABLE categories ADD COLUMN IF NOT EXISTS translations_en jsonb NOT NULL DEFAULT '{}';
-ALTER TABLE pages ADD COLUMN IF NOT EXISTS translations_en jsonb NOT NULL DEFAULT '{}';
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS translations_en jsonb NOT NULL DEFAULT '{}';

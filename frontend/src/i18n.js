@@ -336,23 +336,12 @@ export function LangProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    // Cookie letto dal backend: i contenuti CMS vengono serviti nella lingua scelta
-    document.cookie = `cg_lang=${lang}; path=/; max-age=31536000; samesite=lax`;
     try {
       localStorage.setItem("cg_lang", lang);
     } catch (e) {}
   }, [lang]);
 
-  const setLang = (l) => {
-    const v = l === "en" ? "en" : "it";
-    // Cookie scritto in modo SINCRONO prima dell'aggiornamento di stato: gli effect dei
-    // componenti figli (che ricaricano i contenuti CMS) devono già inviarlo al backend.
-    document.cookie = `cg_lang=${v}; path=/; max-age=31536000; samesite=lax`;
-    try {
-      localStorage.setItem("cg_lang", v);
-    } catch (e) {}
-    setLangState(v);
-  };
+  const setLang = (l) => setLangState(l === "en" ? "en" : "it");
   const t = (key, params = {}) => {
     const s = (DICT[lang] && DICT[lang][key]) || DICT.it[key] || key;
     return s.replace(/\{(\w+)\}/g, (_, k) => (params[k] !== undefined ? params[k] : `{${k}}`));

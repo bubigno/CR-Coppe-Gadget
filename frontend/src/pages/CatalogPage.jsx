@@ -9,7 +9,7 @@ import { useLang } from "@/i18n";
 import { api } from "@/lib/api";
 
 export default function CatalogPage() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,7 @@ export default function CatalogPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [lang]);
+  }, []);
 
   const materials = useMemo(
     () =>
